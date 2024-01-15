@@ -111,7 +111,7 @@ def update_graph():
         # mapbox_style="carto-darkmatter", # dark
         # mapbox_style="open-street-map", # street style
         zoom=12,
-        labels={'availablecapacity': 'Beschikbare parkeerplaatsen'}  # Set the legend label
+        #labels={'availablecapacity': 'Beschikbare parkeerplaatsen'}  # Set the legend label
     )
     
     # Update hovertemplate
@@ -124,9 +124,10 @@ def update_graph():
     
 	
     
-    # Update the layout
+    # Update the layout to hide the color scale legend (shows bad on mobile site)
     fig.update_layout(
-        margin=dict(l=0, r=0, t=0, b=0)
+        margin=dict(l=0, r=0, t=0, b=0),
+	coloraxis_showscale=False,
     )
 	
     
