@@ -1741,3 +1741,29 @@
 [2024-01-15 12:00:46 +0100] [2171] [INFO] Booting worker with pid: 2171
 [2024-01-15 12:00:46 +0100] [2172] [INFO] Booting worker with pid: 2172
 [2024-01-15 12:00:46 +0100] [2173] [INFO] Booting worker with pid: 2173
+[2024-01-15 12:08:01 +0100] [2167] [INFO] Worker exiting (pid: 2167)
+[2024-01-15 12:08:01 +0100] [2171] [INFO] Worker exiting (pid: 2171)
+[2024-01-15 12:08:01 +0100] [2168] [INFO] Worker exiting (pid: 2168)
+[2024-01-15 12:08:01 +0100] [2169] [INFO] Worker exiting (pid: 2169)
+[2024-01-15 12:08:01 +0100] [2170] [INFO] Worker exiting (pid: 2170)
+[2024-01-15 12:08:01 +0100] [2172] [INFO] Worker exiting (pid: 2172)
+[2024-01-15 12:08:01 +0100] [2173] [INFO] Worker exiting (pid: 2173)
+[2024-01-15 12:08:01 +0100] [2165] [INFO] Handling signal: term
+[2024-01-15 12:08:01 +0100] [2165] [ERROR] Worker (pid:2170) was sent SIGTERM!
+[2024-01-15 12:08:01 +0100] [2165] [ERROR] Worker (pid:2167) was sent SIGTERM!
+[2024-01-15 12:08:01 +0100] [2165] [ERROR] Worker (pid:2173) was sent SIGTERM!
+[2024-01-15 12:08:01 +0100] [2165] [ERROR] Worker (pid:2168) was sent SIGTERM!
+[2024-01-15 12:08:01 +0100] [2165] [ERROR] Worker (pid:2169) was sent SIGTERM!
+[2024-01-15 12:08:01 +0100] [2165] [ERROR] Worker (pid:2172) was sent SIGTERM!
+[2024-01-15 12:08:01 +0100] [2165] [ERROR] Worker (pid:2171) was sent SIGTERM!
+[2024-01-15 12:08:01 +0100] [2165] [INFO] Shutting down: Master
+[2024-01-15 12:21:12 +0100] [2054] [INFO] Starting gunicorn 21.2.0
+[2024-01-15 12:21:12 +0100] [2054] [INFO] Listening at: http://0.0.0.0:5001 (2054)
+[2024-01-15 12:21:12 +0100] [2054] [INFO] Using worker: sync
+[2024-01-15 12:21:12 +0100] [2055] [INFO] Booting worker with pid: 2055
+[2024-01-15 12:21:12 +0100] [2056] [INFO] Booting worker with pid: 2056
+[2024-01-15 12:21:12 +0100] [2057] [INFO] Booting worker with pid: 2057
+[2024-01-15 12:21:12 +0100] [2058] [INFO] Booting worker with pid: 2058
+[2024-01-15 12:21:12 +0100] [2059] [INFO] Booting worker with pid: 2059
+[2024-01-15 12:21:12 +0100] [2060] [INFO] Booting worker with pid: 2060
+[2024-01-15 12:21:12 +0100] [2061] [INFO] Booting worker with pid: 2061

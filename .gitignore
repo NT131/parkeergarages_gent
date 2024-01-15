@@ -1,3 +1,5 @@
-parkings_ghent_env
-__pycache__
-data/fetched_data.json
+parkings_ghent_env/
+__pycache__/
+/data/fetched_data.json
+/data/last_update.txt
+/dash/parkings_ghent.log
