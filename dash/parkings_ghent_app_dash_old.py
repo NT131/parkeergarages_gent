@@ -1,6 +1,9 @@
+#from flask import Flask, render_template
+
 import dash
 from dash import html, dcc
 from dash.dependencies import Output, Input
+
 
 import pandas as pd
 
@@ -15,8 +18,11 @@ from datetime import datetime
 
 import locale
 
-# Set Belgium time (for Dutch-language indicators of last update time)
-locale.setlocale(locale.LC_TIME, 'nl_BE.utf-8')
+
+
+
+## Set Belgium time (for Dutch-language indicators of last update time)
+#locale.setlocale(locale.LC_TIME, 'nl_BE.utf-8')
 
 # =============================================================================
 # Fetch data
@@ -30,38 +36,22 @@ def fetch_data():
         data = response.json()    
         # Filter out the row with name "Loop"
         filtered_data = [record for record in data.get("results", []) if record.get("name") != "The Loop"]
-        
-		# Write new data to file
         with open('../data/fetched_data.json', 'w') as json_file:
-            json.dump(filtered_data, json_file)  
-		
-
-		# Get the current time and update time file
-        current_time = datetime.now().strftime("%d %B %Y - %H:%M:%S")
-        with open('../data/last_update.txt', 'w') as update_file:
-            update_file.write(current_time)
-		
+            json.dump(filtered_data, json_file)    
     else:
         print("Failed to fetch data")
         
 # =============================================================================
 # Initialize data and app
 # =============================================================================
-# Fetch data
-	### OPTION 1 ###
-	# Fetch data file if it is not yet present
+# Fetch data file if it is not yet present
 if not os.path.exists("../data/fetched_data.json"):
     fetch_data()
-	### OPTION 2 ###
-	# Fetch data again on each time opening webpage
-#fetch_data()
-
-
 
 # Initialize the Dash app
 app = dash.Dash(__name__, 
-		url_base_pathname='/visualisaties/parkeergarages-gent/',
-		assets_folder='assets') # Relative path to the folder of css file)
+	url_base_pathname='/visualisaties/parkeergarages-gent/',
+	assets_folder='assets') # Relative path to the folder of css file)
 app.title = "Beschikbaarheid parkeergarages Gent"
 
 # # run the data fetch file if not yet done (i.e. no csv present)
@@ -82,8 +72,7 @@ df = pd.DataFrame(data)
 
 def get_last_update_time(file_path):
     if os.path.exists(file_path):
-        with open(file_path, 'r') as update_file:
-            last_update = update_file.read().strip()
+        last_update = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime("%d %B %Y - %H:%M:%S")
         return f"Laatste update: {last_update}"
     else:
         return "Laatste update: onbekend"
@@ -122,7 +111,7 @@ def update_graph():
         # mapbox_style="carto-darkmatter", # dark
         # mapbox_style="open-street-map", # street style
         zoom=12,
-        # labels={'availablecapacity': 'Beschikbare parkeerplaatsen'}  # Set the legend label
+        #labels={'availablecapacity': 'Beschikbare parkeerplaatsen'}  # Set the legend label
     )
     
     # Update hovertemplate
@@ -133,12 +122,14 @@ def update_graph():
     # Set the custom data for hovertemplate
     fig.update_traces(customdata=df[['name', 'availablecapacity', 'totalcapacity']].values)
     
+	
     
     # Update the layout to hide the color scale legend (shows bad on mobile site)
     fig.update_layout(
         margin=dict(l=0, r=0, t=0, b=0),
-		coloraxis_showscale=False,
-        )
+	coloraxis_showscale=False,
+    )
+	
     
     return fig
 
@@ -158,7 +149,7 @@ app.layout = html.Div([
         html.P(className='text-center', children="Beschikbaarheid van de verschillende parkeergarages binnen het Gentse stadscentrum."),
 
         html.Div(className='d-flex justify-content-between align-items-center flex-wrap', children=[ # Make button and update indicator more compact
-            html.Div(id='last-update-time', className='text-center pt-3 pb-2', children=get_last_update_time('../data/last_update.txt')),
+            html.Div(id='last-update-time', className='text-center pt-3 pb-2', children=get_last_update_time('../data/fetched_data.json')),
         
             html.Div(className='text-center', children=[
                 html.Button("Update", id="refresh-btn", className='btn btn-primary mt-3 mb-3'),
@@ -195,26 +186,28 @@ app.layout = html.Div([
     Input('refresh-btn', 'n_clicks')
 )
 def update_data(interval_n, btn_n):
-    fetch_data()
+    if interval_n > 0 or btn_n is not None:
+        fetch_data()  # Fetch data if interval or button triggered
+        
+        # Read the updated JSON file
+        with open('../data/fetched_data.json', 'r') as json_file:
+            data = json.load(json_file)
+        df = pd.DataFrame(data) # Transform to DataFrame for easier handling
+        
+        # Update last update time content after fetching data
+        last_update_time = get_last_update_time('../data/fetched_data.json')
+        
+        return True, 0, update_graph(), last_update_time
     
-    # Read the updated JSON file
-    with open('../data/fetched_data.json', 'r') as json_file:
-        data = json.load(json_file)
-    df = pd.DataFrame(data)
-    
-    # Update last update time content after fetching data
-    last_update_time = get_last_update_time('../data/last_update.txt')
-    
-    return True, 0, update_graph(), last_update_time
+    return True, 0, update_graph(), dash.no_update  # If no updates, prevent changing the last-update-time
 
 # =============================================================================
 # Run app
 # =============================================================================
+
 # Define a callable application object for Gunicorn
 application = app.server
 
 
 if __name__ == '__main__':
     app.run_server(debug=True,host='0.0.0.0', port=5001)
-
-
