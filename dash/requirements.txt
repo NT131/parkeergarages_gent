@@ -1,0 +1,5 @@
+# name environment: parkeergarages-gent_env
+numpy
+pandas
+dash
+gunicorn

@@ -1,0 +1,28 @@
+/* styles.css */
+body {
+    font-family: "Lato", sans-serif;
+    margin: 0;
+}
+
+.title {
+    font-size: 24px;
+    text-align: center;
+}
+
+.description {
+    font-size: 16px;
+    text-align: center;
+}
+
+.footer {
+    font-size: 14px;
+    margin: 0 auto; /* Center the footer */
+    padding: 20px; /* Add padding for better spacing */
+}
+
+
+.custom-graph-container {
+    border: 1px solid #ccc; /* Add a 1px solid border with a light gray color */
+    border-radius: 5px; /* Optional: Add some border radius for rounded corners */
+    overflow: hidden; /* Ensure the border doesn't affect the layout */
+}
