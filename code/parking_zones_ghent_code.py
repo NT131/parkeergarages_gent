@@ -32,13 +32,13 @@ from dash import html
 url = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/parkeertariefzones-gent/exports/geojson?lang=nl&timezone=Europe%2FBrussels"
 response = requests.get(url)
 
-if response.status_code == 200:
-    # Save the GeoJSON content to a file
-    with open("../data/parkeertariefzones-gent.geojson", "wb") as file:
-        file.write(response.content)
-    print("GeoJSON file downloaded successfully.")
-else:
-    print(f"Failed to download GeoJSON file. Status code: {response.status_code}")
+# if response.status_code == 200:
+#     # Save the GeoJSON content to a file
+#     with open("../data/parkeertariefzones-gent.geojson", "wb") as file:
+#         file.write(response.content)
+#     print("GeoJSON file downloaded successfully.")
+# else:
+#     print(f"Failed to download GeoJSON file. Status code: {response.status_code}")
 
 
 # Load GeoDataFrame from GeoJSON file
@@ -110,7 +110,7 @@ color_dict = {
  
 
 
-# Create choropleth map with reduced file
+# Create choropleth map
 fig = px.choropleth_mapbox(
     dissolved_gdf,
     geojson=dissolved_gdf.geometry,
@@ -119,10 +119,12 @@ fig = px.choropleth_mapbox(
     color_discrete_map=color_dict,  # Adjust color as needed
     mapbox_style="carto-positron",
     center={"lat": dissolved_gdf.geometry.centroid.y.mean(), "lon": dissolved_gdf.geometry.centroid.x.mean()},
-    zoom=10,
+    zoom=11,
     opacity=0.3,
 )
 
+# # Remove hover labels by setting hovermode to False
+fig.update_layout(hovermode=False)
 
 
 # # Show the map
@@ -136,7 +138,7 @@ app = dash.Dash(__name__)
 
 # Define the layout of the app
 app.layout = html.Div(children=[
-    html.H1("Choropleth Map with Tables"),
+    html.H1("Parkeertariefzones Gent"),
     
     # Choropleth map
     dcc.Graph(figure=fig),
