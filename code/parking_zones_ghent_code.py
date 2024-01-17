@@ -42,16 +42,6 @@ gdf = gpd.read_file('../data/parkeertariefzones-gent.geojson')
 # (i.e. tiny red zone in the middle of large red zone)
 # and merge adjacent zones
 # =============================================================================
-# # Merge geometries that share a boundary (i.e. 2 green zones in the north)
-# # Inspection indicated that zones 23 and 48 (of the original gdf) are the relevant zones to merge
-# zone_indices = [23, 48]
-
-# # Extract geometries of zones with the specified indices
-# selected_zones = gdf[gdf.index.isin(zone_indices)].unary_union
-
-# # Create a new GeoDataFrame with the merged zones
-# dissolved_gdf = gpd.GeoDataFrame(geometry=[selected_zones], crs=gdf.crs)#
-
 
 # Create 'dissolved_gdf' to contain the larger areas without the smaller 
 # enclosed ones using column 'zone' to determine whether zones should be dissolved.
@@ -61,40 +51,12 @@ dissolved_gdf = gdf.dissolve(by='zone')
 # Reset the index to get new GeoDataFrame with a default index
 dissolved_gdf = dissolved_gdf.reset_index()
 
-
-
-
 # =============================================================================
 # # Merge 'Blauwe zone speciaal' with 'Blauwe zone' and 'Groene zone uitbreiding'
 # # with 'Groene zone' since they involve the same parking regime. 
 # =============================================================================
-# # Extract the geometry of 'Blauwe zone speciaal'
-# geometry_to_merge = dissolved_gdf[dissolved_gdf['zone'] == 'Blauwe zone speciaal']['geometry'].iloc[0]
 
-# # Find the index of 'Blauwe zone'
-# index_to_merge_into = dissolved_gdf[dissolved_gdf['zone'] == 'Blauwe zone'].index[0]
-
-# # Merge the geometries
-# dissolved_gdf.at[index_to_merge_into, 'geometry'] = dissolved_gdf.at[index_to_merge_into, 'geometry'].union(geometry_to_merge)
-
-# # Drop the row corresponding to 'Blauwe zone speciaal'
-# dissolved_gdf = dissolved_gdf[dissolved_gdf['zone'] != 'Blauwe zone speciaal']
-
-
-
-# # Extract the geometry of 'Groene zone uitbreiding'
-# geometry_to_merge = dissolved_gdf[dissolved_gdf['zone'] == 'Groene zone uitbreiding']['geometry'].iloc[0]
-
-# # Find the index of 'Groene zone'
-# index_to_merge_into = dissolved_gdf[dissolved_gdf['zone'] == 'Groene zone'].index[0]
-
-# # Merge the geometries
-# dissolved_gdf.at[index_to_merge_into, 'geometry'] = dissolved_gdf.at[index_to_merge_into, 'geometry'].union(geometry_to_merge)
-
-# # Drop the row corresponding to 'Blauwe zone speciaal'
-# dissolved_gdf = dissolved_gdf[dissolved_gdf['zone'] != 'Groene zone uitbreiding']
-
-
+# Define function to perform merging
 def merge_and_drop_zones(gdf, source_zone, target_zone):
     # Extract the geometry of the source zone
     geometry_to_merge = gdf[gdf['zone'] == source_zone]['geometry'].iloc[0]
@@ -133,19 +95,6 @@ color_dict = {
     # "Blauwe zone speciaal": "blue",
     # "Groene zone uitbreiding": "green",
     }
-
-# # Create choropleth map with original file
-# fig = px.choropleth_mapbox(
-#     gdf,
-#     geojson=gdf.geometry,
-#     locations=gdf.index,  # Use GeoDataFrame index as locations
-#     color="zone",
-#     color_discrete_map=color_dict,  # Adjust color as needed
-#     mapbox_style="carto-positron",
-#     center={"lat": gdf.geometry.centroid.y.mean(), "lon": gdf.geometry.centroid.x.mean()},
-#     zoom=10,
-#     opacity=0.5,
-# )
 
 
 # Create choropleth map with reduced file
