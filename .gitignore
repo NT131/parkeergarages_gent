@@ -1,6 +1,5 @@
 parkings_ghent_env/
 __pycache__/
 .spyproject/
-/data/fetched_data.json
-/data/last_update.txt
+/data/
 /dash/parkings_ghent.log
