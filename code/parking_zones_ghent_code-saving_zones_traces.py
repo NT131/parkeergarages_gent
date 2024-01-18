@@ -2,6 +2,7 @@
 # # Set-up
 # =============================================================================
 import requests
+import pandas as pd
 import geopandas as gpd
 import json
 
