@@ -102,7 +102,7 @@ def get_last_update_time(file_path):
 # Function to update graph
 # =============================================================================
 
-def update_graph():
+def update_parkings():
     # Create a hovertemplate
     hover_template = "<b>%{hovertext}</b><br>" + \
                      "Beschikbare plaatsen: %{customdata[1]}<br>" + \
@@ -152,6 +152,24 @@ def update_graph():
     
     return fig
 
+def formatting_parkings(fig, hover_template):
+    # Update hovertemplate
+    fig.update_traces(
+        hovertemplate=hover_template
+    )
+    
+    # Set the custom data for hovertemplate
+    fig.update_traces(customdata=df[['name', 'availablecapacity', 'totalcapacity']].values)
+    
+    
+    # Update the layout to hide the color scale legend (shows bad on mobile site)
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=0, b=0),
+		coloraxis_showscale=False,
+        )
+    
+    return fig
+
 # =============================================================================
 # Function to update trace (parking zones)
 # =============================================================================
@@ -172,7 +190,7 @@ color_dict = {
     }
 
 # Create choropleth map
-choropleth_map = px.choropleth_mapbox(
+parking_zones_map = px.choropleth_mapbox(
     dissolved_gdf,
     geojson=dissolved_gdf.geometry,
     locations=dissolved_gdf.index,  # Use GeoDataFrame index as locations
@@ -185,51 +203,8 @@ choropleth_map = px.choropleth_mapbox(
 )
    
 # Remove hover labels by setting hovermode to False
-choropleth_map.update_layout(hovermode=False)
+parking_zones_map.update_layout(hovermode=False)
 
-
-# def update_trace():
-#     # Define color dict
-#     color_dict = {
-#         "Rode zone": "red",
-#         "Oranje zone": "orange",
-#         "Gele zone": "yellow",
-#         "Groene zone": "green",
-#         "Blauwe zone": "blue",
-#         # "Blauwe zone speciaal": "blue",
-#         # "Groene zone uitbreiding": "green",
-#         }
-    
-#     # Create choropleth map
-#     choropleth_map = px.choropleth_mapbox(
-#         dissolved_gdf,
-#         geojson=dissolved_gdf.geometry,
-#         locations=dissolved_gdf.index,  # Use GeoDataFrame index as locations
-#         color="zone",
-#         color_discrete_map=color_dict,  # Adjust color as needed
-#         mapbox_style="carto-positron",
-#         center={"lat": dissolved_gdf.geometry.centroid.y.mean(), "lon": dissolved_gdf.geometry.centroid.x.mean()},
-#         zoom=11,
-#         opacity=0.3,
-#     )
-       
-#     # Remove hover labels by setting hovermode to False
-#     choropleth_map.update_layout(hovermode=False)
-
-#     return choropleth_map
-
-
-# # Create trace with parking zones
-# trace_fig = update_trace()
-
-# # Combine the two figures
-# combined_fig = graph_fig.add_trace(trace_fig.data[0])
-# combined_fig = combined_fig.add_trace(trace_fig.data[1])
-
-# # Create traces with parking zones
-# traces = []
-# for index, row in dissolved_gdf.iterrows():
-#     traces.append(trace_fig.data[index])
 # =============================================================================
 # Define app layout
 # =============================================================================
@@ -258,7 +233,7 @@ app.layout = html.Div([
                 multi=False  # Allow only one option to be selected
             ),
             # Graph                                                                 
-            dcc.Graph(id='live-update-graph', figure=update_graph()),
+            dcc.Graph(id='live-update-graph', figure=update_parkings()),
             dcc.Interval(id='update-graph-interval', interval=1*1000, n_intervals=0),
             
 
@@ -312,44 +287,19 @@ def update_data(interval_n, btn_n, display_option):
     last_update_time = get_last_update_time('../data/last_update.txt')
     
     # Create graph with parking garages
-    graph_fig = update_graph()
+    parkings_map = update_parkings()
     
-    # # Create trace with parking zones
-    # trace_fig = update_trace()
-
-    # # # Combine the two figures
-    # # combined_fig = graph_fig.add_trace(trace_fig.data[0])
-    # # combined_fig = combined_fig.add_trace(trace_fig.data[1])
-    
-    # # Create traces with parking zones
-    # traces = []
-    # for index, row in dissolved_gdf.iterrows():
-    #     traces.append(trace_fig.data[index])
-    
-    # Combine the figures
-    # combined_fig = graph_fig.add_traces(traces)
-    
-    
-    # return True, 0, combined_fig, last_update_time
-    
-    # # Create traces with parking zones
-    # traces = []
-    # for index, row in dissolved_gdf.iterrows():
-    #     traces.append(update_trace(row))  # Assuming you have an update_trace function
-    
-    # # Combine the two graphs using add_traces
-    # combined_fig = graph_fig.add_traces(choropleth_map['data'])
     
     if display_option == 'parkings':
-        return True, 0, graph_fig, last_update_time
+        return True, 0, parkings_map, last_update_time
     elif display_option == 'parking-zones':
-        return True, 0, choropleth_map, last_update_time  # An empty trace
+        return True, 0, parking_zones_map, last_update_time  # An empty trace
     elif display_option == 'parkings_parking-zones':
         # Combine the two graphs using add_traces
-        combined_fig = graph_fig.add_traces(choropleth_map['data'])
+        combined_fig = parkings_map.add_traces(parking_zones_map['data'])
         return True, 0, combined_fig, last_update_time
     else:
-        return True, 0, graph_fig, last_update_time  # Default to showing the graph
+        return True, 0, parkings_map, last_update_time  # Default to showing the graph
 
 
 # =============================================================================
