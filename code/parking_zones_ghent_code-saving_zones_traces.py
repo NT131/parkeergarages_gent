@@ -128,13 +128,7 @@ for index, row in dissolved_gdf.iterrows():
     traces.append(choropleth_map.data[index])
 
 # Save traces to file
-traces_filename = '../data/traces.json'
+traces_filename = '../data/parking_zones_ghent-traces.json'
 traces_data = [pio.to_json(trace) for trace in traces]
 with open(traces_filename, 'w') as traces_file:
     json.dump(traces_data, traces_file)
-
-# # Load traces from file
-# # traces_filename = '../data/traces.json'
-# with open(traces_filename, 'r') as traces_file:
-#     traces_data = json.load(traces_file)
-
