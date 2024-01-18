@@ -158,36 +158,78 @@ def update_graph():
 # Load GeoDataFrame from GeoJSON file
 dissolved_gdf = gpd.read_file('../data/parkeertariefzones-gent_simplified.geojson')
 
-def update_trace():
-    # Define color dict
-    color_dict = {
-        "Rode zone": "red",
-        "Oranje zone": "orange",
-        "Gele zone": "yellow",
-        "Groene zone": "green",
-        "Blauwe zone": "blue",
-        # "Blauwe zone speciaal": "blue",
-        # "Groene zone uitbreiding": "green",
-        }
+
+
+# Define color dict
+color_dict = {
+    "Rode zone": "red",
+    "Oranje zone": "orange",
+    "Gele zone": "yellow",
+    "Groene zone": "green",
+    "Blauwe zone": "blue",
+    # "Blauwe zone speciaal": "blue",
+    # "Groene zone uitbreiding": "green",
+    }
+
+# Create choropleth map
+choropleth_map = px.choropleth_mapbox(
+    dissolved_gdf,
+    geojson=dissolved_gdf.geometry,
+    locations=dissolved_gdf.index,  # Use GeoDataFrame index as locations
+    color="zone",
+    color_discrete_map=color_dict,  # Adjust color as needed
+    mapbox_style="carto-positron",
+    center={"lat": dissolved_gdf.geometry.centroid.y.mean(), "lon": dissolved_gdf.geometry.centroid.x.mean()},
+    zoom=11,
+    opacity=0.3,
+)
+   
+# Remove hover labels by setting hovermode to False
+choropleth_map.update_layout(hovermode=False)
+
+
+# def update_trace():
+#     # Define color dict
+#     color_dict = {
+#         "Rode zone": "red",
+#         "Oranje zone": "orange",
+#         "Gele zone": "yellow",
+#         "Groene zone": "green",
+#         "Blauwe zone": "blue",
+#         # "Blauwe zone speciaal": "blue",
+#         # "Groene zone uitbreiding": "green",
+#         }
     
-    # Create choropleth map
-    choropleth_map = px.choropleth_mapbox(
-        dissolved_gdf,
-        geojson=dissolved_gdf.geometry,
-        locations=dissolved_gdf.index,  # Use GeoDataFrame index as locations
-        color="zone",
-        color_discrete_map=color_dict,  # Adjust color as needed
-        mapbox_style="carto-positron",
-        center={"lat": dissolved_gdf.geometry.centroid.y.mean(), "lon": dissolved_gdf.geometry.centroid.x.mean()},
-        zoom=11,
-        opacity=0.3,
-    )
+#     # Create choropleth map
+#     choropleth_map = px.choropleth_mapbox(
+#         dissolved_gdf,
+#         geojson=dissolved_gdf.geometry,
+#         locations=dissolved_gdf.index,  # Use GeoDataFrame index as locations
+#         color="zone",
+#         color_discrete_map=color_dict,  # Adjust color as needed
+#         mapbox_style="carto-positron",
+#         center={"lat": dissolved_gdf.geometry.centroid.y.mean(), "lon": dissolved_gdf.geometry.centroid.x.mean()},
+#         zoom=11,
+#         opacity=0.3,
+#     )
        
-    # Remove hover labels by setting hovermode to False
-    choropleth_map.update_layout(hovermode=False)
+#     # Remove hover labels by setting hovermode to False
+#     choropleth_map.update_layout(hovermode=False)
 
-    return choropleth_map
+#     return choropleth_map
 
+
+# # Create trace with parking zones
+# trace_fig = update_trace()
+
+# # Combine the two figures
+# combined_fig = graph_fig.add_trace(trace_fig.data[0])
+# combined_fig = combined_fig.add_trace(trace_fig.data[1])
+
+# # Create traces with parking zones
+# traces = []
+# for index, row in dissolved_gdf.iterrows():
+#     traces.append(trace_fig.data[index])
 # =============================================================================
 # Define app layout
 # =============================================================================
@@ -202,6 +244,27 @@ app.layout = html.Div([
 
         html.P(className='text-center', children="Beschikbaarheid van de verschillende parkeergarages binnen het Gentse stadscentrum."),
 
+        html.Div(className='graph-container custom-graph-container', children=[ # Add custom-graph-container next to standard Bootstrap CSS style
+            
+            # Dropdown for selecting display option
+            dcc.Dropdown(
+                id='display-option',
+                options=[
+                    {'label': 'Parkeergarages', 'value': 'parkings'},
+                    {'label': 'Parkeertariefzones', 'value': 'parking-zones'},
+                    {'label': 'Parkeergarages en parkeertariefzones', 'value': 'parkings_parking-zones'},
+                ],
+                value='parkings',  # Set default value
+                multi=False  # Allow only one option to be selected
+            ),
+            # Graph                                                                 
+            dcc.Graph(id='live-update-graph', figure=update_graph()),
+            dcc.Interval(id='update-graph-interval', interval=1*1000, n_intervals=0),
+            
+
+
+        ]),        
+
         html.Div(className='d-flex justify-content-between align-items-center flex-wrap', children=[ # Make button and update indicator more compact
             html.Div(id='last-update-time', className='text-center pt-3 pb-2', children=get_last_update_time('../data/last_update.txt')),
         
@@ -211,10 +274,7 @@ app.layout = html.Div([
             ]),
         ]),
         
-        html.Div(className='graph-container custom-graph-container', children=[ # Add custom-graph-container next to standard Bootstrap CSS style
-            dcc.Graph(id='live-update-graph', figure=update_graph()),
-            dcc.Interval(id='update-graph-interval', interval=1*1000, n_intervals=0)
-        ]),
+
 
         html.Footer(className='text-center', children=html.P([
             "De gegevens zijn beschikbaar via ",
@@ -237,9 +297,10 @@ app.layout = html.Div([
     Output('live-update-graph', 'figure'),
     Output('last-update-time', 'children'),  # Output to update last-update-time Div
     Input('refresh-interval-component', 'n_intervals'),
-    Input('refresh-btn', 'n_clicks')
+    Input('refresh-btn', 'n_clicks'),
+    Input('display-option', 'value')  # New input for display option
 )
-def update_data(interval_n, btn_n):
+def update_data(interval_n, btn_n, display_option):
     fetch_data()
     
     # Read the updated JSON file
@@ -253,23 +314,43 @@ def update_data(interval_n, btn_n):
     # Create graph with parking garages
     graph_fig = update_graph()
     
-    # Create trace with parking zones
-    trace_fig = update_trace()
+    # # Create trace with parking zones
+    # trace_fig = update_trace()
 
-    # # Combine the two figures
-    # combined_fig = graph_fig.add_trace(trace_fig.data[0])
-    # combined_fig = combined_fig.add_trace(trace_fig.data[1])
+    # # # Combine the two figures
+    # # combined_fig = graph_fig.add_trace(trace_fig.data[0])
+    # # combined_fig = combined_fig.add_trace(trace_fig.data[1])
     
-    # Create traces with parking zones
-    traces = []
-    for index, row in dissolved_gdf.iterrows():
-        traces.append(trace_fig.data[index])
+    # # Create traces with parking zones
+    # traces = []
+    # for index, row in dissolved_gdf.iterrows():
+    #     traces.append(trace_fig.data[index])
     
     # Combine the figures
-    combined_fig = graph_fig.add_traces(traces)
+    # combined_fig = graph_fig.add_traces(traces)
     
     
-    return True, 0, combined_fig, last_update_time
+    # return True, 0, combined_fig, last_update_time
+    
+    # # Create traces with parking zones
+    # traces = []
+    # for index, row in dissolved_gdf.iterrows():
+    #     traces.append(update_trace(row))  # Assuming you have an update_trace function
+    
+    # # Combine the two graphs using add_traces
+    # combined_fig = graph_fig.add_traces(choropleth_map['data'])
+    
+    if display_option == 'parkings':
+        return True, 0, graph_fig, last_update_time
+    elif display_option == 'parking-zones':
+        return True, 0, choropleth_map, last_update_time  # An empty trace
+    elif display_option == 'parkings_parking-zones':
+        # Combine the two graphs using add_traces
+        combined_fig = graph_fig.add_traces(choropleth_map['data'])
+        return True, 0, combined_fig, last_update_time
+    else:
+        return True, 0, graph_fig, last_update_time  # Default to showing the graph
+
 
 # =============================================================================
 # Run app
