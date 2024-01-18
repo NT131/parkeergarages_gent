@@ -256,8 +256,18 @@ def update_data(interval_n, btn_n):
     # Create trace with parking zones
     trace_fig = update_trace()
 
-    # Combine the two figures
-    combined_fig = graph_fig.add_trace(trace_fig.data[0])
+    # # Combine the two figures
+    # combined_fig = graph_fig.add_trace(trace_fig.data[0])
+    # combined_fig = combined_fig.add_trace(trace_fig.data[1])
+    
+    # Create traces with parking zones
+    traces = []
+    for index, row in dissolved_gdf.iterrows():
+        traces.append(trace_fig.data[index])
+    
+    # Combine the figures
+    combined_fig = graph_fig.add_traces(traces)
+    
     
     return True, 0, combined_fig, last_update_time
 
