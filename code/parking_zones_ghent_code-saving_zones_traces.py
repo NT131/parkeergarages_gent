@@ -5,26 +5,24 @@ import requests
 import pandas as pd
 import numpy as np
 import geopandas as gpd
-
-import plotly.express as px
-# Ensure plots are shown in browser
-import plotly.io as pio
-pio.renderers.default='browser' # set browser as renderer
-
 import json
 
-# # Render dash app
-# import dash
-# from dash import dcc
-# from dash import html
+import plotly.express as px
+import plotly.io as pio
 
+# *****************************************************************************
+# # Ensure plots are shown in browser (during exploration)
+# pio.renderers.default='browser' # set browser as renderer
+# *****************************************************************************
 
 # =============================================================================
 # Downloading geojson file and loading it
 # =============================================================================
 
-url = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/parkeertariefzones-gent/exports/geojson?lang=nl&timezone=Europe%2FBrussels"
-response = requests.get(url)
+# *****************************************************************************
+# # Download geojson file if necessary
+# url = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/parkeertariefzones-gent/exports/geojson?lang=nl&timezone=Europe%2FBrussels"
+# response = requests.get(url)
 
 # if response.status_code == 200:
 #     # Save the GeoJSON content to a file
@@ -33,7 +31,7 @@ response = requests.get(url)
 #     print("GeoJSON file downloaded successfully.")
 # else:
 #     print(f"Failed to download GeoJSON file. Status code: {response.status_code}")
-
+# *****************************************************************************
 
 # Load GeoDataFrame from GeoJSON file
 gdf = gpd.read_file('../data/parkeertariefzones-gent.geojson')
@@ -90,7 +88,6 @@ dissolved_gdf.to_file('../data/parkeertariefzones-gent_simplified.geojson', driv
 # #Create graph
 # =============================================================================
 
-
 # Define color dict
 color_dict = {
     "Rode zone": "red",
@@ -118,9 +115,10 @@ choropleth_map = px.choropleth_mapbox(
 # Remove hover labels by setting hovermode to False
 choropleth_map.update_layout(hovermode=False)
 
-# Show map
-choropleth_map.show()
-
+# *****************************************************************************
+# # Show map
+# choropleth_map.show()
+# *****************************************************************************
   
 # Store parking zones as traces to later on add to other graphs
 traces = []
