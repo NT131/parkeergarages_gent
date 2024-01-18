@@ -10,6 +10,8 @@ import dash
 from dash import html, dcc
 from dash.dependencies import Output, Input
 
+import geopandas as gpd
+
 import pandas as pd
 
 import plotly.express as px
@@ -150,6 +152,41 @@ def update_graph():
     
     return fig
 
+# =============================================================================
+# Function to update trace (parking zones)
+# =============================================================================
+# Load GeoDataFrame from GeoJSON file
+dissolved_gdf = gpd.read_file('../data/parkeertariefzones-gent_simplified.geojson')
+
+def update_trace():
+    # Define color dict
+    color_dict = {
+        "Rode zone": "red",
+        "Oranje zone": "orange",
+        "Gele zone": "yellow",
+        "Groene zone": "green",
+        "Blauwe zone": "blue",
+        # "Blauwe zone speciaal": "blue",
+        # "Groene zone uitbreiding": "green",
+        }
+    
+    # Create choropleth map
+    choropleth_map = px.choropleth_mapbox(
+        dissolved_gdf,
+        geojson=dissolved_gdf.geometry,
+        locations=dissolved_gdf.index,  # Use GeoDataFrame index as locations
+        color="zone",
+        color_discrete_map=color_dict,  # Adjust color as needed
+        mapbox_style="carto-positron",
+        center={"lat": dissolved_gdf.geometry.centroid.y.mean(), "lon": dissolved_gdf.geometry.centroid.x.mean()},
+        zoom=11,
+        opacity=0.3,
+    )
+       
+    # Remove hover labels by setting hovermode to False
+    choropleth_map.update_layout(hovermode=False)
+
+    return choropleth_map
 
 # =============================================================================
 # Define app layout
@@ -213,7 +250,16 @@ def update_data(interval_n, btn_n):
     # Update last update time content after fetching data
     last_update_time = get_last_update_time('../data/last_update.txt')
     
-    return True, 0, update_graph(), last_update_time
+    # Create graph with parking garages
+    graph_fig = update_graph()
+    
+    # Create trace with parking zones
+    trace_fig = update_trace()
+
+    # Combine the two figures
+    combined_fig = graph_fig.add_trace(trace_fig.data[0])
+    
+    return True, 0, combined_fig, last_update_time
 
 # =============================================================================
 # Run app
