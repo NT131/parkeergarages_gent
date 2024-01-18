@@ -15,6 +15,7 @@ import geopandas as gpd
 import pandas as pd
 
 import plotly.express as px
+import plotly.graph_objects as go # to create table using graphical objects
 
 import requests
 
@@ -177,33 +178,43 @@ def formatting_parkings(fig, hover_template):
 dissolved_gdf = gpd.read_file('../data/parkeertariefzones-gent_simplified.geojson')
 
 
+def get_parking_zones_map():
+    # Define color dict
+    color_dict = {
+        "Rode zone": "red",
+        "Oranje zone": "orange",
+        "Gele zone": "yellow",
+        "Groene zone": "green",
+        "Blauwe zone": "blue",
+        # "Blauwe zone speciaal": "blue",
+        # "Groene zone uitbreiding": "green",
+        }
+    
+    # Create choropleth map
+    parking_zones_map = px.choropleth_mapbox(
+        dissolved_gdf,
+        geojson=dissolved_gdf.geometry,
+        locations=dissolved_gdf.index,  # Use GeoDataFrame index as locations
+        color="zone",
+        color_discrete_map=color_dict,  # Adjust color as needed
+        mapbox_style="carto-positron",
+        center={"lat": dissolved_gdf.geometry.centroid.y.mean(), "lon": dissolved_gdf.geometry.centroid.x.mean()},
+        zoom=11,
+        opacity=0.3,
+    )
+       
+    # Remove hover labels by setting hovermode to False + reset margins as for parkings_map
+    parking_zones_map.update_layout(hovermode=False, 
+                                    margin=dict(l=0, r=0, t=0, b=0))
+    
+    return parking_zones_map
 
-# Define color dict
-color_dict = {
-    "Rode zone": "red",
-    "Oranje zone": "orange",
-    "Gele zone": "yellow",
-    "Groene zone": "green",
-    "Blauwe zone": "blue",
-    # "Blauwe zone speciaal": "blue",
-    # "Groene zone uitbreiding": "green",
-    }
+parking_zones_map = get_parking_zones_map()
 
-# Create choropleth map
-parking_zones_map = px.choropleth_mapbox(
-    dissolved_gdf,
-    geojson=dissolved_gdf.geometry,
-    locations=dissolved_gdf.index,  # Use GeoDataFrame index as locations
-    color="zone",
-    color_discrete_map=color_dict,  # Adjust color as needed
-    mapbox_style="carto-positron",
-    center={"lat": dissolved_gdf.geometry.centroid.y.mean(), "lon": dissolved_gdf.geometry.centroid.x.mean()},
-    zoom=11,
-    opacity=0.3,
-)
-   
-# Remove hover labels by setting hovermode to False
-parking_zones_map.update_layout(hovermode=False)
+# def formatting_parking_zones(fig):
+#     # Remove hover labels by setting hovermode to False
+#     fig.update_layout(hovermode=False)
+#     return fig
 
 # =============================================================================
 # Define app layout
@@ -219,27 +230,6 @@ app.layout = html.Div([
 
         html.P(className='text-center', children="Beschikbaarheid van de verschillende parkeergarages binnen het Gentse stadscentrum."),
 
-        html.Div(className='graph-container custom-graph-container', children=[ # Add custom-graph-container next to standard Bootstrap CSS style
-            
-            # Dropdown for selecting display option
-            dcc.Dropdown(
-                id='display-option',
-                options=[
-                    {'label': 'Parkeergarages', 'value': 'parkings'},
-                    {'label': 'Parkeertariefzones', 'value': 'parking-zones'},
-                    {'label': 'Parkeergarages en parkeertariefzones', 'value': 'parkings_parking-zones'},
-                ],
-                value='parkings',  # Set default value
-                multi=False  # Allow only one option to be selected
-            ),
-            # Graph                                                                 
-            dcc.Graph(id='live-update-graph', figure=update_parkings()),
-            dcc.Interval(id='update-graph-interval', interval=1*1000, n_intervals=0),
-            
-
-
-        ]),        
-
         html.Div(className='d-flex justify-content-between align-items-center flex-wrap', children=[ # Make button and update indicator more compact
             html.Div(id='last-update-time', className='text-center pt-3 pb-2', children=get_last_update_time('../data/last_update.txt')),
         
@@ -248,8 +238,24 @@ app.layout = html.Div([
                 dcc.Interval(id='refresh-interval-component', interval=10*60*1000, n_intervals=0)
             ]),
         ]),
-        
-
+                        
+        html.Div(className='graph-container custom-graph-container', children=[ # Add custom-graph-container next to standard Bootstrap CSS style
+            
+            # Dropdown for selecting display option
+            dcc.Dropdown(
+                id='display-option',
+                options=[
+                    {'label': 'Parkeergarages', 'value': 'parkings'},
+                    {'label': 'Parkeertariefzones', 'value': 'parking-zones'},
+                    {'label': 'Parkeergarages en parkeertariefzones', 'value': 'parkings_AND_parking-zones'},
+                ],
+                value='parkings',  # Set default value
+                multi=False  # Allow only one option to be selected
+            ),
+            # Graph                                                                 
+            dcc.Graph(id='live-update-graph', figure=update_parkings()),
+            dcc.Interval(id='update-graph-interval', interval=1*1000, n_intervals=0),
+        ]),        
 
         html.Footer(className='text-center', children=html.P([
             "De gegevens zijn beschikbaar via ",
@@ -288,15 +294,45 @@ def update_data(interval_n, btn_n, display_option):
     
     # Create graph with parking garages
     parkings_map = update_parkings()
-    
+   
+    parking_zones_map = get_parking_zones_map()
     
     if display_option == 'parkings':
         return True, 0, parkings_map, last_update_time
     elif display_option == 'parking-zones':
-        return True, 0, parking_zones_map, last_update_time  # An empty trace
-    elif display_option == 'parkings_parking-zones':
+
+        return True, 0, parking_zones_map, last_update_time  
+    elif display_option == 'parkings_AND_parking-zones':
+        
+        # # Create a new figure for the combined graph
+        # combined_fig = go.Figure()
+        
+        # # Add traces from parkings_map
+        # for trace in parkings_map.data:
+        #     combined_fig.add_trace(trace)
+        
+        # # Add traces from parking_zones_map
+        # for trace in parking_zones_map['data']:
+        #     combined_fig.add_trace(trace)
+        
+        # # Specify hoverinfo for each trace
+        # for i in range(len(combined_fig.data)):
+        #     combined_fig.data[i].hoverlabel = parkings_map.data[i].hoverlabel
+        
         # Combine the two graphs using add_traces
         combined_fig = parkings_map.add_traces(parking_zones_map['data'])
+        
+        # Remove hover labels by setting hovermode to False
+        combined_fig.update_layout(hovermode=False)
+        
+        # # combined_fig = formatting_parkings(combined_fig)
+        # # Copy hoverlabel settings from graph_fig to choropleth_map traces only when showing the combined graph
+        # for i in range(len(parkings_map.data)):
+        #     combined_fig.data[i].hoverlabel = parkings_map.data[i].hoverlabel
+        
+        # # Reactivate hover labels by setting hovermode to closest
+        # combined_fig.update_layout(hovermode='closest')
+
         return True, 0, combined_fig, last_update_time
     else:
         return True, 0, parkings_map, last_update_time  # Default to showing the graph
