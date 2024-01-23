@@ -1,0 +1,15 @@
+# location: /etc/systemd/system/gunicorn_parkings_ghent.service
+[Unit]
+Description=Gunicorn instance to serve 'parkings_ghent' Dash application
+After=network.target
+
+[Service]
+User=nielstack
+Group=nielstack
+WorkingDirectory=/home/nielstack/projects/erpohk/visualisations/parkings_ghent/dash
+ExecStart=/home/nielstack/projects/erpohk/visualisations/parkings_ghent/dash/parkings_ghent_env/bin/gunicorn -w 7 -b 0.0.0.0:5001 parkings_ghent_app_dash:application --log-file=/home/nielstack/projects/erpohk/visualisations/parkings_ghent/dash/parkings_ghent.log
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
