@@ -1,3 +1,5 @@
+# update mirrored files by running "./sync_config.sh" in terminal
+
 # Paths to individual configuration files and the local clone of the GitHub repository
 nginx_conf="/etc/nginx/sites-available/dashapp" # /path/to/nginx/conf
 gunicorn_service="/etc/systemd/system/gunicorn_parkings_ghent.service" # /path/to/gunicorn/service
