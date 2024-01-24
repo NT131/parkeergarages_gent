@@ -1,48 +1,45 @@
 # location: /etc/nginx/sites-available/dashapp
+
+# Redirect HTTP to HTTPS server block
 server {
+    listen 80;
+    server_name erpohk.ddns.net;
+
+    # Issue a permanent redirect (HTTP 301) to the equivalent HTTPS URL
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS server block
+server {
+    listen 443 ssl; # Listen on port 443 for HTTPS traffic
     server_name erpohk.ddns.net;
 
     # Root directory for the HTML file
     root /home/nielstack/projects/erpohk/visualisations;
     index index.htlm index.html;
 
-    #location /visualisaties {
-    #    try_files $uri $uri/ /index.html;  # Serve index.html for the base path
-    #}
-
+    # Proxy settings for the '/visualisaties/parkeergarages-gent' location
     location /visualisaties/parkeergarages-gent {
         proxy_pass http://192.168.0.252:5001;
-	proxy_redirect off;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /visualisaties/aanwezigheid-vlaams-parlement {
-	proxy_pass http://192.168.0.252:5002;
         proxy_redirect off;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/erpohk.ddns.net/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/erpohk.ddns.net/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+    # Proxy settings for the '/visualisaties/aanwezigheid-vlaams-parlement' location
+    location /visualisaties/aanwezigheid-vlaams-parlement {
+        proxy_pass http://192.168.0.252:5002;
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
 
+    # SSL certificate and related settings managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/erpohk.ddns.net/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/erpohk.ddns.net/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 }
 
-server {
-    if ($host = erpohk.ddns.net) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
-
-    listen 80;
-    server_name erpohk.ddns.net;
-    return 404; # managed by Certbot
-
-
-}
