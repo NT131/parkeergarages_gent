@@ -6,8 +6,13 @@ After=network.target
 [Service]
 User=nielstack
 Group=nielstack
+#User=erpohk
+#Group=erpohk
 WorkingDirectory=/home/nielstack/projects/erpohk/visualisations/parkings_ghent/dash
+#WorkingDirectory=/home/erpohk/visualisations/parkings_ghent/dash
 ExecStart=/home/nielstack/projects/erpohk/visualisations/parkings_ghent/dash/parkings_ghent_env/bin/gunicorn -w 7 -b 0.0.0.0:5001 parkings_ghent_app_dash:application --log-file=/home/nielstack/projects/erpohk/visualisations/parkings_ghent/dash/parkings_ghent.log
+#ExecStart=/home/erpohk/visualisations/parkings_ghent/dash/parkings_ghent_env/bin/gunicorn -w 7 -b 0.0.0.0:5001 parkings_ghent_app_dash:application --log-file=/home/erpohk/visualisations/parkings_ghent/dash/parkings_ghent.log
+
 StandardOutput=journal
 StandardError=journal
 
