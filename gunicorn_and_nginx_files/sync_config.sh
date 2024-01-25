@@ -1,4 +1,4 @@
-# update mirrored files by running "./sync_config.sh" in terminal
+# update mirrored files by running "./sync_config.sh" in terminal after making it executable  ("chmod +x sync_config.sh")
 
 # Paths to individual configuration files and the local clone of the GitHub repository
 nginx_conf="/etc/nginx/sites-available/dashapp" # /path/to/nginx/conf
